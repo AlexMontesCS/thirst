@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<head>
+    <style>
+        body {
+            background-color: rgba(1, 65, 148, 0.733);
+            height: 100%
+        }
+        #wrapper {
+            display: flex;
+            justify-content: center;
+            text-align: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        #panel {
+            position: absolute;
+            top: 50%;
+            -ms-transform: translateY(-50%);
+            transform: translateY(-50%);
+            background-color: white;
+            width: 800px;
+            height: 600px;
+            border-radius: 10px;
+        }
+        #logo {
+            position: relative;
+            top: 10px;
+            height: 25%;
+            width: auto;
+        }
+
+      .labelStyle {
+            position: relative;
+            font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+        }
+
+    </style>
+</head>
+<body>
+<div id="wrapper">
+    <div id="panel">
+            <img id="logo" src="https://upload.wikimedia.org/wikipedia/en/thumb/0/00/Thirst_Project_logo.svg/1200px-Thirst_Project_logo.svg.png">
+          <div id="textWrapper">
+            <h1 class="labelStyle" id="donos">Donations Raised: </h1>  
+            <h1 class="labelStyle" id="dono_count">Donation Count: </h1>
+          </div>
+    </div>
+</div>
+
+<script>
+    var element = document.getElementById("donos");
+    var dono_count = document.getElementById("dono_count");
+    fetch("/total", {
+        "body": null,
+        "method": "GET",
+    }).then(async r => {
+        var total = await r.json();
+        element.innerText += "$" + total["total"];
+        dono_count.innerText += total["donation_count"];
+    })
+</script>
+</body>

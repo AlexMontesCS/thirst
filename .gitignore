@@ -81,7 +81,7 @@ target/
 # IPython
 profile_default/
 ipython_config.py
-
+*replit*
 # pyenv
 #   For a library or package, you might want to ignore these files since the code is
 #   intended to run in multiple environments; otherwise, check them in:
@@ -99,7 +99,7 @@ ipython_config.py
 #   This is especially recommended for binary packages to ensure reproducibility, and is more
 #   commonly ignored for libraries.
 #   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-#poetry.lock
+poetry.lock
 
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow
 __pypackages__/
@@ -123,6 +123,8 @@ venv.bak/
 # Spyder project settings
 .spyderproject
 .spyproject
+
+pyproject.toml
 
 # Rope project settings
 .ropeproject
