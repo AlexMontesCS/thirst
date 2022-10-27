@@ -15,4 +15,6 @@ def setInterval(func,time):
       func()
 
 print("Started the clock!")
+update_total()
+
 setInterval(update_total, 300)

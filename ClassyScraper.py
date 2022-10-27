@@ -1,25 +1,42 @@
 import math
-from os import link
 import re
 import requests
 from UrlBuilder import UrlBuilder
 import json
-from tqdm import tqdm
-from decimal import Decimal
+import os
 from progress.bar import Bar
 
 WI_THIRST_ID = "129803"
 API_URL = f"https://my.thirstproject.org/frs-api/fundraising-teams/{WI_THIRST_ID}/feed-items?"
+CACHE = "dono_cache.json"
 
 def get_total() -> dict:
 
+    #start *fresh*
     dono_totals = {
         "total": 0,
         "donation_count": 0
     }
+    new_donos = []
+    per_page = 100 #max results per page.
 
-    per_page = 100 #eek, max is 100
-    donations = []
+    #If cache file does not exist, create it!
+    if not os.path.exists(CACHE):
+        open(CACHE, "w")
+
+    #open cache for reading
+    f = open(CACHE, "r+") 
+
+    #If not valid json get that out of here >:(
+    try:
+        donations = json.load(f) 
+    except:
+        donations = []
+
+    f.close()
+
+    #latest id stored in cache!
+    latest_id = donations[0]["id"] if len(donations) > 0 else -1
 
     #build da url 🧃
     url = UrlBuilder(API_URL)
@@ -36,23 +53,30 @@ def get_total() -> dict:
 
     #setup progress bar bc look cewl
     bar = Bar('Getting Data...', max=max_page)
-    donations += response["data"]
+    done = add_to_donos(response, new_donos, latest_id)
     bar.next()
 
     #iterate through every page, adding data to big list :o
     for p in range(2, max_page + 1):
+        if done:
+            bar.goto(max_page)
+            break
         url.edit_param("page", p)
         response = req_json(url.get_url())
-        donations +=  response["data"]
+        done = add_to_donos(response, new_donos, latest_id)
+      
         bar.next()
-
     bar.finish()
 
-    print("Filtering Donations...")
-    # donations = list(filter(lambda x: x.get("linkable_type") == "donation", donations))
+    donations = new_donos + donations
+
+    #save new data :o
+    with open(CACHE, "w") as f:
+        f.write(json.dumps(donations))
 
 
     #If dono is from this year add to the total
+    #TODO adapatble by parameters
     for dono in donations:
         try:
             linkable = dono["linkable"]
@@ -60,7 +84,9 @@ def get_total() -> dict:
               dono_totals["total"] += linkable["donation_net_amount"]
               dono_totals["donation_count"] += 1
         except:
-            pass #TODO 
+            pass #TODO yucky pass
+
+
 
     dono_totals["total"] = float("{0:.2f}".format(dono_totals["total"]))
     return dono_totals
@@ -71,7 +97,18 @@ def req_json(url: str) -> dict:
     res = requests.get(url)
     return res.json()
 
-def is_current(year: int, month: int, date):
+
+#If cached dono is found we return True to show that there is no need to continue.
+def add_to_donos(response: dict, donos: list, latest_id: int) -> bool:
+    for data in response["data"]:
+        if data["id"] == latest_id:
+            return True
+        else:
+            donos.append(data)
+    return False
+    
+#if dono is past x date, return True!
+def is_current(year: int, month: int, date) -> bool:
     date_parts = date.split("-")
     date_year  = int(date_parts[0])
     date_month = int(date_parts[1])
