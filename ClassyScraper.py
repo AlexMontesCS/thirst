@@ -11,12 +11,13 @@ from progress.bar import Bar
 WI_THIRST_ID = "129803"
 API_URL = f"https://my.thirstproject.org/frs-api/fundraising-teams/{WI_THIRST_ID}/feed-items?"
 
-dono_totals = {
-    "total": 0,
-    "donation_count": 0
-}
-
 def get_total() -> dict:
+
+    dono_totals = {
+        "total": 0,
+        "donation_count": 0
+    }
+
     per_page = 100 #eek, max is 100
     donations = []
 
