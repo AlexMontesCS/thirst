@@ -27,8 +27,6 @@ class UrlBuilder:
         self.params[key] = value
         self.url = self.base_url + urllib.parse.urlencode(self.params)
 
-
-
     #Returns built url with query params
     def get_url(self) -> str:
         return self.url

@@ -2,7 +2,6 @@ from ClassyScraper import *
 import threading 
 import json
 
-
 def update_total():
   total = get_total()
   f = open("total.json", "w")
