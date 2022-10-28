@@ -1,10 +1,14 @@
 <!DOCTYPE html>
+
 <head>
     <style>
         body {
             background-color: rgba(1, 65, 148, 0.733);
-            height: 100%
+            height: 100%;
+            font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+
         }
+
         #wrapper {
             display: flex;
             justify-content: center;
@@ -12,6 +16,7 @@
             align-items: center;
             flex-direction: column;
         }
+
         #panel {
             position: absolute;
             top: 50%;
@@ -22,6 +27,7 @@
             height: 600px;
             border-radius: 10px;
         }
+
         #logo {
             position: relative;
             top: 10px;
@@ -29,34 +35,68 @@
             width: auto;
         }
 
-      .labelStyle {
+        .labelStyle {
             position: relative;
-            font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
         }
 
+        #dateLabel {
+            font-weight: bold;
+            font-size: xx-large;
+        }
+
+        /* #textWrapper {}  Will style in future*/
+
+        #startFrom {
+            width: 50%;
+            font-size: x-large;
+        }
     </style>
 </head>
-<body>
-<div id="wrapper">
-    <div id="panel">
-            <img id="logo" src="https://upload.wikimedia.org/wikipedia/en/thumb/0/00/Thirst_Project_logo.svg/1200px-Thirst_Project_logo.svg.png">
-          <div id="textWrapper">
-            <h1 class="labelStyle" id="donos">Donations Raised: </h1>  
-            <h1 class="labelStyle" id="dono_count">Donation Count: </h1>
-          </div>
-    </div>
-</div>
 
-<script>
-    var element = document.getElementById("donos");
-    var dono_count = document.getElementById("dono_count");
-    fetch("/total", {
-        "body": null,
-        "method": "GET",
-    }).then(async r => {
-        var total = await r.json();
-        element.innerText += "$" + total["total"];
-        dono_count.innerText += total["donation_count"];
-    })
-</script>
+<body>
+    <div id="wrapper">
+        <div id="panel">
+            <img id="logo"
+                src="https://upload.wikimedia.org/wikipedia/en/thumb/0/00/Thirst_Project_logo.svg/1200px-Thirst_Project_logo.svg.png">
+            <div id="textWrapper">
+                <h1 class="labelStyle" id="progress"></h1>
+                <h1 class="labelStyle" id="donos">Donations Raised: </h1>
+                <h1 class="labelStyle" id="dono_count">Donation Count: </h1>
+                <label for="startFrom" id="dateLabel">Date to Start From:</label><br>
+                <input type="date" onchange="updateDono()" id="startFrom" value="2022-08-01">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var donos = document.getElementById("donos");
+        var dono_count = document.getElementById("dono_count");
+        var date = document.getElementById("startFrom")
+        var prog = document.getElementById("progress")
+        function updateDono() {
+
+            resetLabels();
+            date.disabled = true;
+
+            prog.innerText = "Fetching Data..."
+            fetch(`/total?start=${date.value}`, {
+                "body": null,
+                "method": "GET",
+            }).then(async r => {
+                var total = await r.json();
+                donos.innerText += "$" + total["total"];
+                dono_count.innerText += total["donation_count"];
+                date.disabled = false;
+                prog.innerText = "Fetched!";
+            })
+
+        }
+
+        function resetLabels() {
+            donos.innerText = "Donations Raised:"
+            dono_count.innerText = "Donation Count:"
+        }
+
+        updateDono()
+    </script>
 </body>

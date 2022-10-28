@@ -1,13 +1,15 @@
 from ClassyScraper import *
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, request, jsonify
 import json
 
 app = Flask(__name__)
 
 @app.route('/total')
 def totals():
-    total = open("total.json", "r")
-    return json.load(total)
+    args = request.args
+    date = args.get("start")    
+    total = get_total(date)
+    return jsonify(total)
 
 @app.route("/")
 def home():

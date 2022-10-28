@@ -1,5 +1,5 @@
 # Thirst Project Dono Counter
-*eek first commit messy, lots to fix*
+*eek early commits messy, lots to fix*
 
 Scrapes data from classy API to count up all donations!
 
