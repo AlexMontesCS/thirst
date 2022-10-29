@@ -44,7 +44,10 @@
             font-size: xx-large;
         }
 
-        /* #textWrapper {}  Will style in future*/
+        #textWrapper > * {
+            margin: 2.5rem
+
+        }
 
         #startFrom {
             width: 50%;
@@ -63,7 +66,7 @@
                 <h1 class="labelStyle" id="donos">Donations Raised: </h1>
                 <h1 class="labelStyle" id="dono_count">Donation Count: </h1>
                 <label for="startFrom" id="dateLabel">Date to Start From:</label><br>
-                <input type="date" onchange="updateDono()" id="startFrom" value="2022-08-01">
+                <input type="date" onchange="updateDono()" id="startFrom">
             </div>
         </div>
     </div>
@@ -74,7 +77,9 @@
         var date = document.getElementById("startFrom")
         var prog = document.getElementById("progress")
         function updateDono() {
-
+            if(prog.innerText == "Fetching Data...")
+                return;
+                
             resetLabels();
             date.disabled = true;
 
@@ -97,6 +102,5 @@
             dono_count.innerText = "Donation Count:"
         }
 
-        updateDono()
     </script>
 </body>
