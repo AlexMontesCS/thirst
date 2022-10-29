@@ -75,11 +75,10 @@
         var prog = document.getElementById("progress")
         function updateDono() {
             var dateVal = date.value;
-            if(prog.innerText == "Fetching Data...")
-                return;
+            if(prog.innerText == "Fetching Data...") return;
           
             resetLabels();
-            date.readonly = true;
+            date.disabled = true;
 
             prog.innerText = "Fetching Data..."
             fetch(`/total?start=${dateVal}`, {
@@ -89,10 +88,10 @@
                 var total = await r.json();
                 donos.innerText += "$" + total["total"];
                 dono_count.innerText += total["donation_count"];
-                date.readonly = false;
+                date.disabled = false;
                 prog.innerText = "Since " + dateVal;
+                date.value = dateVal
             })
-
         }
 
         function resetLabels() {
