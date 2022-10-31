@@ -7,7 +7,7 @@ app = Flask(__name__)
 def totals():
     """
     It takes a date from the URL, creates a scraper object, and then returns the total amount of money
-    raised fr that date
+    raised from that date
     
     Returns:
       A JSON object with the total number of donations and the total amount of money donated.
