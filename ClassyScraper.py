@@ -11,7 +11,7 @@ WI_THIRST_ID = "129803"
 API_URL = f"https://my.thirstproject.org/frs-api/fundraising-teams/{WI_THIRST_ID}/feed-items?"
 
 class Scraper:
-    def __init__(self, date_start: str, cache_file: str):
+    def __init__(self, date_start: str, message: str, cache_file: str):
         """
         This function takes a date and a cache file as input and initializes the date and cache file for the
         class
@@ -20,8 +20,9 @@ class Scraper:
           date_start (str): The date you want to start scraping from.
           cache_file (str): This is the file that will be used to store the data.
         """
-        self.date = date_start
-        self.cache = cache_file
+        self.date    = date_start
+        self.message = message
+        self.cache   = cache_file
 
     def get_total(self) -> dict:
         """
@@ -32,6 +33,20 @@ class Scraper:
           A dictionary with the total money collected from donations and the number of donations.
         """
 
+        donations = self.get_donos()
+    
+        # If dono is from {date} or later add to the total
+        date_cmpts = [int(d) for d in self.date.split("-")]
+
+        dono_totals = self.sum_donos(donations, *date_cmpts)
+
+        dono_totals["total"] = float("{0:.2f}".format(dono_totals["total"]))
+        self.rank_members(donations)
+        return dono_totals
+
+
+    def get_donos(self):
+      
         per_page = 100  # max results per page.
 
         # This is checking if the cache file exists, if it doesn't it creates it. Then it opens the file in
@@ -49,9 +64,7 @@ class Scraper:
             donations = []
 
         f.close()
-
-        
-        # Checks if the donations list is empty. If it is, it sets the latest_id to -1. If
+            # Checks if the donations list is empty. If it is, it sets the latest_id to -1. If
         # it isn't, it sets the latest_id to the id of the first donation in the list.
         latest_id = donations[0]["id"] if len(donations) > 0 else -1
 
@@ -77,13 +90,10 @@ class Scraper:
         with open(self.cache, "w") as f:
             f.write(json.dumps(donations))
 
-        # If dono is from {date} or later add to the total
-        date_cmpts = [int(x) for x in self.date.split("-")]
-        dono_totals = self.sum_donos(donations, *date_cmpts)
-
-        dono_totals["total"] = float("{0:.2f}".format(dono_totals["total"]))
-
-        return dono_totals
+    
+        if self.message is not None:
+          donations = self.filter_message(donations, self.message)
+        return donations
 
 
     def req_json(self, url: str) -> dict:
@@ -135,12 +145,15 @@ class Scraper:
           True if the donation is current, False if not
         """
         date_parts = date.split("-")
-
         date_year = int(date_parts[0])
         date_month = int(date_parts[1])
         date_day = int(date_parts[2][:2])
 
-        return year <= date_year and month <= date_month and day <= date_day
+
+        #TODO: please make readable 
+        return (date_year > year) or \
+                ((date_year == year) and ((date_month > month) or \
+                (date_month == month and date_day >= day)))
 
     def sum_donos(self, donations: list, start_year: int, start_month: int, start_date: int) -> dict:
         """
@@ -156,6 +169,7 @@ class Scraper:
         Returns:
           A dictionary with the total amount of donations and the number of donations.
         """
+        dono_date = [start_year, start_month, start_date]
         dono_totals = {
             "total": 0,
             "donation_count": 0
@@ -163,11 +177,12 @@ class Scraper:
         for dono in donations:
             try:
                 linkable = dono["linkable"]
-                if self.is_current(start_year, start_month, start_date, linkable["purchased_at"]):
+                if linkable is not None and self.is_current(*dono_date, linkable["purchased_at"]):
                     dono_totals["total"] += linkable["donation_net_amount"]
                     dono_totals["donation_count"] += 1
-            except:
-                pass  # TODO I dont like passes..
+            except Exception as e:
+              pass  # TODO handle any errors...
+
         return dono_totals
 
 
@@ -193,3 +208,34 @@ class Scraper:
             if done:
                 break
         return new_donos
+
+
+    def filter_message(self, donations: list, message: str) -> list:
+      """
+      It takes a list of dictionaries and a string, and returns a list of dictionaries where the string is
+      in the comment
+      
+      Args:
+        donations (list): list of dictionaries
+        message (str): The message to filter by.
+      
+      Returns:
+        A list of dictionaries.
+      """
+      return [x for x in donations if message in str(x.get("comment")).lower()]
+
+    #TODO: refactor. late night code :/
+    def rank_members(self, donations: list) -> dict:
+      member_count = { }
+      date = [int(d) for d in self.date.split("-")]
+      for dono in donations:
+        if dono.get("linkable") is not None:
+          if(self.is_current(*date, dono["linkable"]["purchased_at"])):
+            name = dono["feedable_value"]
+            amount = dono["linkable"]["donation_net_amount"]
+            if member_count.get(name) is None:
+              member_count[name] = amount
+            else:
+              member_count[name] += amount 
+      return member_count
+

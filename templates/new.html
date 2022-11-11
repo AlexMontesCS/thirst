@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            background-color: rgba(1, 65, 148, 0.733);
+            height: 100%;
+            font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+
+        }
+
+        #panel {
+            position: absolute;
+            top: 50%;
+            -ms-transform: translateY(-50%);
+            transform: translateY(-50%);
+            background-color: white;
+            width: 100rem;
+            height: 50rem;
+            border-radius: 1em;
+        }
+
+        /* Style the tab */
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            border-radius: 1rem;
+            padding: 0.5rem;
+            margin-top: 2rem;
+            width: fit-content;
+        }
+
+        /* Style the buttons inside the tab */
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            font-size: 17px;
+            border-radius: 1rem;
+        }
+
+        /* Change background color of buttons on hover */
+        .tab button:hover {
+            background-color: #ddd;
+        }
+
+        /* Create an active/current tablink class */
+        .tab button.active {
+            background-color: #ccc;
+        }
+
+        /* Style the tab content */
+        .tabcontent {
+            display: none;
+            justify-content: left;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+            width: fit-content
+        }
+
+        #wrapper {
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        #panel {
+            position: absolute;
+            top: 50%;
+            -ms-transform: translateY(-50%);
+            transform: translateY(-50%);
+            background-color: white;
+            width: fit-content;
+            height: 50rem;
+            border-radius: 1rem;
+            padding: 0.5rem;
+        }
+
+        #logo {
+            float: left;
+            position: relative;
+            top: 10px;
+            left: 0px;
+            height: 10%;
+            width: auto;
+            margin: 1rem;
+        }
+
+        .label {
+            width: fit-content;
+            font-size: x-large;
+        }
+
+        .input {
+            margin-top: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        #ranking {
+            overflow-y: auto;
+            height: 40rem;
+        }
+
+        #submit {
+            color: white;
+            border-radius: 1rem;
+            background-color: rgba(34, 156, 222, 1);
+            box-shadow: 1rem;
+            height: 4rem;
+            width: 10rem;
+            font-size: 2rem;
+            border: none;
+        }
+
+        #submit:hover {
+            background-color: rgba(34, 156, 222, 0.5);
+            cursor: grab;
+        }
+
+    </style>
+    
+</head>
+
+<body>
+    <div id="wrapper">
+        <div id="panel">
+            <img id="logo"
+                src="https://upload.wikimedia.org/wikipedia/en/thumb/0/00/Thirst_Project_logo.svg/1200px-Thirst_Project_logo.svg.png" />
+            <div class="tab">
+                <button class="tablinks" onclick="openTab(event, 'donoCount')">Count Donos</button>
+                <button class="tablinks" onclick="openTab(event, 'rankMembers')">Member Ranking</button>
+            </div>
+
+            <div id="donoCount" class="tabcontent labelStyle">
+                <h1 id="progress"></h1>
+                <h1 id="donos">Donations Raised: </h1>
+                <h1 id="dono_count">Donation Count: </h1>
+                <label for="startFrom" class="label">Date to Start From:*</label><br>
+                <input class="input" type="date" id="startFrom"><br>
+                <label for="messageFilter" class="label">Message contains...</label><br>
+                <input class="input" id="messageFilter" placeholder="Filter for..."><br>
+                <button id="submit" onclick="updateDono()">Submit</button>
+            </div>
+
+            <div id="rankMembers" class="tabcontent">
+                <p id="ranking" style="overflow-y: auto;"></p>
+            </div>
+
+        </div>
+    </div>
+    <script>
+        var donos = document.getElementById("donos");
+        var dono_count = document.getElementById("dono_count");
+        var date = document.getElementById("startFrom")
+        var prog = document.getElementById("progress")
+        var messageFilter = document.getElementById("messageFilter");
+        function updateDono() {
+            var dateVal = date.value;
+            var message = messageFilter.value;
+            if (prog.innerText == "Fetching Data...") return;
+
+            resetLabels();
+            date.disabled = true;
+
+            prog.innerText = "Fetching Data..."
+            fetch(`/total?start=${dateVal}${message ? `&message=${message.toLowerCase()}` : ""}`, {
+                "body": null,
+                "method": "GET",
+            }).then(async r => {
+                var total = await r.json();
+                donos.innerText += "$" + total["total"];
+                dono_count.innerText += total["donation_count"];
+                date.disabled = false;
+                prog.innerText = "Since " + dateVal;
+                date.value = dateVal
+            })
+        }
+
+        function resetLabels() {
+            donos.innerText = "Donations Raised:"
+            dono_count.innerText = "Donation Count:"
+        }
+        function openTab(evt, elementId) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(elementId).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
+        function getMembers() {
+            var dateVal = "2022-08-01";
+            return new Promise((resolve, reject) => {
+                fetch(`/rank?start=${dateVal}`, {
+                    "body": null,
+                    "method": "GET",
+                }).then(async r => {
+                    var members = await r.json();
+                    resolve(members)
+                })
+            })
+
+        }
+
+        getMembers().then(members => {
+            let rank = document.getElementById("ranking");
+            let keysSorted = Object.keys(members).sort((a,b) =>  members[b]-members[a]);
+
+            keysSorted.forEach((key, i) => {
+                rank.innerText += `${i + 1}: ${key}\t${members[key].toFixed(2)}\n\n`
+            })
+        })
+    </script>
+
+</body>
+
+</html>

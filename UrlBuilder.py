@@ -2,7 +2,7 @@ import urllib
 
 class UrlBuilder:
 
-    #TODO validate url with regex 
+    #TODO validate base url with regex 
     def __init__(self, base_url: str) -> None:
         """
         The function takes a base_url as a string and sets the url and params attributes to the base_url and
@@ -17,7 +17,7 @@ class UrlBuilder:
 
     def add_param(self, key: str, value: str) -> None:
         """
-        If the key exists, do not modify the url
+        If the key exists, do not modify the url. If not, add it.
         
         Args:
           key (str): The parameter key
